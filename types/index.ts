@@ -44,3 +44,6 @@ export interface ScrapeResult {
   success: boolean
   error?: string
 }
+export interface ProductWithHistory extends Product {
+  price_history: PriceHistory[]
+}
