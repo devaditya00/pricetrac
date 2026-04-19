@@ -1,4 +1,4 @@
-import { addScheduledScrapeJobs } from './producer'
+import { addScheduledScrapeJobs } from './producer.js'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(

@@ -1,5 +1,5 @@
-import './queue/consumer'
-import { scheduleAllProducts } from './queue/scheduler'
+import './queue/consumer.js'
+import { scheduleAllProducts } from './queue/scheduler.js'
 
 console.log('PriceTrac worker started')
 
