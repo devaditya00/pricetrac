@@ -16,9 +16,6 @@ export async function scrapeFlipkart(url: string): Promise<ScrapeResult> {
 
     const $ = cheerio.load(response.data)
 
-    const priceMatch = response.data.match(/₹\s?[\d,]+/g)
-    console.log('PRICE MATCHES:', priceMatch?.slice(0, 5))
-
     const name = $('span.VU-ZEz').first().text().trim() ||
       $('span.B_NuCI').first().text().trim() ||
       $('h1').first().text().trim() ||
