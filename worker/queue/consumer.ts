@@ -1,10 +1,10 @@
 import { Worker } from 'bullmq'
 import IORedis from 'ioredis'
 import { createClient } from '@supabase/supabase-js'
-import { scrapeAmazon } from '../scraper/amazon.js'
-import { scrapeFlipkart } from '../scraper/flipkart.js'
-import { scrapeMyntra } from '../scraper/myntra.js'
-import { calculateSignal } from '../../lib/signal.js'
+import { scrapeAmazon } from '../scraper/amazon'
+import { scrapeFlipkart } from '../scraper/flipkart'
+import { scrapeMyntra } from '../scraper/myntra'
+import { calculateSignal } from '../../lib/signal'
 
 async function checkAndSendAlerts(productId: string, currentPrice: number) {
   const { data: alerts } = await supabase

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "npx ts-node --esm index.ts",
+    "start": "node --loader tsx/esm index.ts",
     "build": "npx tsc"
   },
   "dependencies": {
@@ -13,7 +13,7 @@
     "cheerio": "^1.0.0",
     "ioredis": "^5.0.0",
     "playwright": "^1.0.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.0.0"
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
   }
 }
