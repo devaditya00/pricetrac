@@ -47,3 +47,9 @@ export interface ScrapeResult {
 export interface ProductWithHistory extends Product {
   price_history: PriceHistory[]
 }
+export interface PushSubscription {
+  id: string
+  user_id: string
+  subscription: object
+  created_at: string
+}

@@ -16,24 +16,23 @@ export async function scrapeFlipkart(url: string): Promise<ScrapeResult> {
 
     const $ = cheerio.load(response.data)
 
+    const priceMatch = response.data.match(/₹\s?[\d,]+/g)
+    console.log('PRICE MATCHES:', priceMatch?.slice(0, 5))
+
     const name = $('span.VU-ZEz').first().text().trim() ||
       $('span.B_NuCI').first().text().trim() ||
       $('h1').first().text().trim() ||
       null
 
-    const priceText = $('div.v1zwn21s.v1zwn2a').first().text().trim() ||
-  $('[style*="color: rgb(51, 51, 51)"]').first().text().trim() ||
-  ''
-
-    const price = parsePrice(priceText)
+    const price = extractPriceFromHTML(response.data)
 
     const rawImage = $('img[src*="rukminim"][src*="/image/"]').first().attr('src') ||
-  $('img[src*="rukminim"]').first().attr('src') ||
-  null
+      $('img[src*="rukminim"]').first().attr('src') ||
+      null
 
-  const image_url = rawImage
-  ? rawImage.replace('/image/280/370/', '/image/832/832/')
-  : null
+    const image_url = rawImage
+      ? rawImage.replace('/image/280/370/', '/image/832/832/')
+      : null
 
     if (!name && !price) {
       return {
@@ -57,6 +56,29 @@ export async function scrapeFlipkart(url: string): Promise<ScrapeResult> {
       error: message
     }
   }
+}
+
+function extractPriceFromHTML(html: string): number | null {
+  const buyAtMatch = html.match(/Buy at ₹\s?[\d,]+/)
+
+  if (buyAtMatch) {
+    const price = parseInt(buyAtMatch[0].replace(/[^0-9]/g, ''))
+    if (!isNaN(price)) return price
+  }
+
+  const matches = html.match(/₹\s?[\d,]+/g) || []
+
+  const prices = matches
+    .map(p => parseInt(p.replace(/[₹,]/g, '')))
+    .filter(p =>
+      p > 1000 &&
+      p !== 919 &&
+      p !== 11025
+    )
+
+  if (prices.length === 0) return null
+
+  return prices[0]
 }
 
 function parsePrice(text: string): number | null {

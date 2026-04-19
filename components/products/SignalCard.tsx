@@ -60,25 +60,25 @@ export default function SignalCard({
       <p className={`text-sm ${colors.text} mb-4`}>{reason}</p>
 
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-400 mb-1">Current</p>
-          <p className="text-sm font-bold text-gray-900">
-            ₹{currentPrice.toLocaleString('en-IN')}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-400 mb-1">All time low</p>
-          <p className="text-sm font-bold text-green-600">
-            ₹{allTimeLow.toLocaleString('en-IN')}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl p-3 text-center">
-          <p className="text-xs text-gray-400 mb-1">All time high</p>
-          <p className="text-sm font-bold text-red-500">
-            ₹{allTimeHigh.toLocaleString('en-IN')}
-          </p>
-        </div>
-      </div>
+  <div className="bg-white rounded-xl p-3 text-center">
+    <p className="text-xs text-gray-400 mb-1">Current</p>
+    <p className="text-sm font-bold text-gray-900">
+      {currentPrice ? `₹${currentPrice.toLocaleString('en-IN')}` : 'N/A'}
+    </p>
+  </div>
+  <div className="bg-white rounded-xl p-3 text-center">
+    <p className="text-xs text-gray-400 mb-1">All time low</p>
+    <p className="text-sm font-bold text-green-600">
+      {allTimeLow ? `₹${allTimeLow.toLocaleString('en-IN')}` : 'N/A'}
+    </p>
+  </div>
+  <div className="bg-white rounded-xl p-3 text-center">
+    <p className="text-xs text-gray-400 mb-1">All time high</p>
+    <p className="text-sm font-bold text-red-500">
+      {allTimeHigh ? `₹${allTimeHigh.toLocaleString('en-IN')}` : 'N/A'}
+    </p>
+  </div>
+</div>
     </div>
   )
 }

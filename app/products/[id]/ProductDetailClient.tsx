@@ -9,6 +9,7 @@ import SignalCard from '@/components/products/SignalCard'
 import PriceChart from '@/components/products/PriceChart'
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
+import AlertForm from '@/components/products/AlertForm'
 
 export default function ProductDetailClient({ id }: { id: string }) {
   const [email, setEmail] = useState('')
@@ -128,6 +129,11 @@ export default function ProductDetailClient({ id }: { id: string }) {
         />
 
         <PriceChart priceHistory={product.price_history || []} />
+        <AlertForm
+          productId={product.id}
+          currentPrice={product.current_price!}
+          existingAlert={null}
+        />
 
         <div className="bg-white border border-gray-100 rounded-2xl p-5">
           <h3 className="text-sm font-medium text-gray-900 mb-3">

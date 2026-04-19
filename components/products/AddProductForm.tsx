@@ -3,28 +3,43 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { addProduct } from '@/lib/api'
-import { useProductStore } from '@/lib/store'
+import toast from 'react-hot-toast'
 
 export default function AddProductForm() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const queryClient = useQueryClient()
-  const setIsAddingProduct = useProductStore(s => s.setIsAddingProduct)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (!url.trim()) {
+      toast.error('Please enter a URL')
+      return
+    }
+
+    const isValidUrl = url.includes('amazon.in') ||
+      url.includes('amazon.com') ||
+      url.includes('flipkart.com') ||
+      url.includes('myntra.com')
+
+    if (!isValidUrl) {
+      toast.error('Only Amazon, Flipkart and Myntra URLs supported')
+      return
+    }
+
     setLoading(true)
-    setError('')
+
+    const toastId = toast.loading('Fetching product details... (20-30 seconds)')
 
     try {
       await addProduct(url)
       queryClient.invalidateQueries({ queryKey: ['products'] })
       setUrl('')
-      setIsAddingProduct(false)
+      toast.success('Product added successfully!', { id: toastId })
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong'
-      setError(message)
+      toast.error(message, { id: toastId })
     } finally {
       setLoading(false)
     }
@@ -39,8 +54,8 @@ export default function AddProductForm() {
           value={url}
           onChange={e => setUrl(e.target.value)}
           placeholder="Paste Amazon, Flipkart or Myntra URL..."
-          required
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={loading}
+          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
         />
         <button
           type="submit"
@@ -50,12 +65,6 @@ export default function AddProductForm() {
           {loading ? 'Adding...' : 'Track'}
         </button>
       </form>
-      {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
-      {loading && (
-        <p className="text-gray-400 text-xs mt-2">
-          Fetching product details... this takes 20-30 seconds
-        </p>
-      )}
     </div>
   )
 }

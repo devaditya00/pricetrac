@@ -5,6 +5,7 @@ import { Product } from '@/types'
 import SignalBadge from '@/components/ui/SignalBadge'
 import { useQueryClient } from '@tanstack/react-query'
 import { deleteProduct } from '@/lib/api'
+import toast from 'react-hot-toast'
 
 interface ProductCardProps {
   product: Product
@@ -15,8 +16,17 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   async function handleDelete() {
     if (!confirm('Stop tracking this product?')) return
-    await deleteProduct(product.id)
-    queryClient.invalidateQueries({ queryKey: ['products'] })
+
+    const toastId = toast.loading('Removing product...')
+
+    try {
+      await deleteProduct(product.id)
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      toast.success('Product removed', { id: toastId })
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to remove'
+      toast.error(message, { id: toastId })
+    }
   }
 
   return (
@@ -54,7 +64,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           ) : (
             <span className="text-sm text-gray-400">Fetching price...</span>
           )}
-
           {product.all_time_low && product.current_price && (
             <span className="text-xs text-gray-400">
               Low: ₹{product.all_time_low.toLocaleString('en-IN')}
