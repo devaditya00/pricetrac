@@ -3,9 +3,13 @@ import { getAuthUser, detectPlatform } from '@/lib/utils'
 import { scrapeAmazon } from '@/worker/scraper/amazon'
 import { scrapeFlipkart } from '@/worker/scraper/flipkart'
 import { scrapeMyntra } from '@/worker/scraper/myntra'
-import { addScrapeJob } from '@/worker/queue/producer'
 import { calculateSignal } from '@/lib/signal'
+import { addScrapeJob } from '@/worker/queue/producer'
+import { corsHeaders, handleOptions } from '@/lib/cors'
 
+export async function OPTIONS() {
+  return handleOptions()
+}
 
 export async function GET() {
   const { user, supabase, error } = await getAuthUser()
@@ -19,21 +23,27 @@ export async function GET() {
     .order('created_at', { ascending: false })
 
   if (dbError) {
-    return NextResponse.json({ error: dbError.message }, { status: 500 })
+    return NextResponse.json(
+      { error: dbError.message },
+      { status: 500, headers: corsHeaders() }
+    )
   }
 
-  return NextResponse.json({ products: data })
+  return NextResponse.json({ products: data }, { headers: corsHeaders() })
 }
 
 export async function POST(request: NextRequest) {
-  const { user, supabase, error } = await getAuthUser()
+  const { user, supabase, error } = await getAuthUser(request)
   if (error) return error
 
   const body = await request.json()
   const { url } = body
 
   if (!url) {
-    return NextResponse.json({ error: 'URL is required' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'URL is required' },
+      { status: 400, headers: corsHeaders() }
+    )
   }
 
   const platform = detectPlatform(url)
@@ -41,7 +51,7 @@ export async function POST(request: NextRequest) {
   if (!platform) {
     return NextResponse.json(
       { error: 'Only Amazon, Flipkart and Myntra URLs are supported' },
-      { status: 400 }
+      { status: 400, headers: corsHeaders() }
     )
   }
 
@@ -53,7 +63,10 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (existing) {
-    return NextResponse.json({ error: 'You are already tracking this product' }, { status: 409 })
+    return NextResponse.json(
+      { error: 'You are already tracking this product' },
+      { status: 409, headers: corsHeaders() }
+    )
   }
 
   const { data: product, error: dbError } = await supabase
@@ -67,7 +80,10 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (dbError) {
-    return NextResponse.json({ error: dbError.message }, { status: 500 })
+    return NextResponse.json(
+      { error: dbError.message },
+      { status: 500, headers: corsHeaders() }
+    )
   }
 
   let scrapeResult
@@ -76,38 +92,38 @@ export async function POST(request: NextRequest) {
   else scrapeResult = await scrapeMyntra(url)
 
   if (scrapeResult.success) {
-  await supabase
-    .from('price_history')
-    .insert({
-      product_id: product.id,
-      price: scrapeResult.price,
-    })
+    await supabase
+      .from('price_history')
+      .insert({
+        product_id: product.id,
+        price: scrapeResult.price,
+      })
 
-  const { data: priceHistory } = await supabase
-  .from('price_history')
-  .select('id, product_id, price, recorded_at')
-  .eq('product_id', product.id)
+    const { data: priceHistory } = await supabase
+      .from('price_history')
+      .select('id, product_id, price, recorded_at')
+      .eq('product_id', product.id)
 
-  const signal = calculateSignal(
-    scrapeResult.price!,
-    scrapeResult.price!,
-    priceHistory || []
-  )
+    const signal = calculateSignal(
+      scrapeResult.price!,
+      scrapeResult.price!,
+      priceHistory || []
+    )
 
-  await supabase
-    .from('products')
-    .update({
-      name: scrapeResult.name,
-      current_price: scrapeResult.price,
-      image_url: scrapeResult.image_url,
-      all_time_low: scrapeResult.price,
-      all_time_high: scrapeResult.price,
-      signal,
-    })
-    .eq('id', product.id)
+    await supabase
+      .from('products')
+      .update({
+        name: scrapeResult.name,
+        current_price: scrapeResult.price,
+        image_url: scrapeResult.image_url,
+        all_time_low: scrapeResult.price,
+        all_time_high: scrapeResult.price,
+        signal,
+      })
+      .eq('id', product.id)
 
-  await addScrapeJob(product.id, url, platform)
-}
+    await addScrapeJob(product.id, url, platform)
+  }
 
   const { data: updatedProduct } = await supabase
     .from('products')
@@ -115,5 +131,8 @@ export async function POST(request: NextRequest) {
     .eq('id', product.id)
     .single()
 
-  return NextResponse.json({ product: updatedProduct }, { status: 201 })
+  return NextResponse.json(
+    { product: updatedProduct },
+    { status: 201, headers: corsHeaders() }
+  )
 }
